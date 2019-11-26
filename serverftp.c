@@ -6,6 +6,7 @@
  * NOTE: Starting homework #2, add more comments here describing the overall function
  * performed by server ftp program
  * This includes, the list of ftp commands processed by server ftp.
+ * The list of ftp commands is mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
 */
 
 #include <stdio.h>
@@ -25,8 +26,8 @@
 * for communications. Control port is used to pass control information and
 * data port is used to send and recieve files
 */
-#define CONTROL_CONNECTION_FTP_PORT 4164
-#define DATA_CONNECTION_FTP_PORT 4165
+#define CONTROL_CONNECTION_FTP_PORT 4002
+#define DATA_CONNECTION_FTP_PORT 4001
 
 
 /* Error and OK constants codes, for if something goes wrong in program */
@@ -62,7 +63,7 @@ char argument[1024];	/* argument (without ftp command) extracted from userCmd */
 char replyMsg[1024];  /* buffer to send reply message to client */
 char temp[1024]; /* temp char array (string) to hold userCmd before broken into 2 parts */
 int userVar; /* Hold a temp variable value */
-int bytesread = 500; /* variable used to hold value of a file during file I/O in below cmds, since requested to transfer 100 bytes of a file at a time */
+int bytesread = 600; /* variable used to hold value of a file during file I/O in below cmds, since requested to transfer 100 bytes of a file at a time */
 static FILE *fp; /* declare a global file pointer to use for reading/writing ls, pwd, send cmds */
 
 
@@ -206,11 +207,14 @@ int main(int argc, char *argv[]) {
 				*/
 				else if(strcmp(cmd, "pass") == 0) {
 					cmdCheck = true;
-					if(strcmp(argument, pass[userVar]) == 0) {
+					if(userCheck == false) {
+						strcpy(replyMsg, "Please enter an ftp username before entering a password\n");
+					}
+					else if(strcmp(argument, pass[userVar]) == 0) {
 							strcpy(replyMsg, "Password correct\nLogin successful\n200 cmd OK\n");
 							passCheck = true;
 					}
-					if(passCheck == false) {
+					else if(passCheck == false) {
 						strcpy(replyMsg, "Invalid password for the user\nLogin failed. Please enter username and password.\n");
 					}
 				}
@@ -315,6 +319,23 @@ int main(int argc, char *argv[]) {
 							}
 
 
+							else if(strcmp(cmd, "dir") == 0) {
+								cmdCheck = true;
+							  status = system("dir > diroutput.txt");
+								if((strcmp(userCmd, "dir") == 0) && status == 0) {
+									fp = fopen("diroutput.txt", "r");
+									bytesread = fread(replyMsg, 1, 1024, fp);
+									replyMsg[bytesread] = '\0';	// store null terminator
+									remove("diroutput.txt");
+									fclose(fp);
+									strcat(replyMsg, "\n200 cmd OK\n");
+								}
+								else {
+									strcpy(replyMsg, "500 invalid syntax\nCommand Failed\n");
+								}
+							}
+
+
 							/* This block tests the cd cmd, check cmd, then do a chdir call to perform actions (move to different dir)
 							* and send replymsg to client if successful
 							* use chdir() which performs a system call to change current working directory
@@ -404,9 +425,9 @@ int main(int argc, char *argv[]) {
 							* cmd test 12, file should be created before execution, example touch names.txt, 'ls', 'send filename' (cmd sends a file from clientftp to serverftp), 'ls'
 							* Brian Perel implemented this command
 							*/
-							else if(strcmp(cmd, "send") == 0) {
+							else if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
 								cmdCheck = true;
-								if(strcmp(userCmd, "send") != 0) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+								if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 									status = clntConnect("10.3.200.17", &dcSocket);
 									if(status != 0) {
 										printf("Couldn't create data connection\n");
@@ -435,9 +456,9 @@ int main(int argc, char *argv[]) {
 							* cmd test 13, example 'ls', 'recv filename' (server picks out received content and brings it back to client), 'ls'
 							* Brian Perel implemented this command
 							*/
-							else if(strcmp(cmd, "recv") == 0) {
+							else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
 								cmdCheck = true;
-								if(strcmp(userCmd, "recv") != 0) {  /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+								if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) {  /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 									status = clntConnect("10.3.200.17", &dcSocket);
 									if(status != 0) {
 										printf("Couldn't create data connection\n");
@@ -468,7 +489,7 @@ int main(int argc, char *argv[]) {
 							strcpy(replyMsg, "Invalid FTP cmd\n");
 					}
 
-					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) && (strcmp(cmd, "stat") != 0)) {
+					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) && (strcmp(cmd, "stat") != 0) && (strcmp(cmd, "user") != 0)) {
 							strcpy(replyMsg, "Please enter username and password before testing cmds\n");
 					}
 
