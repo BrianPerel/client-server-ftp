@@ -12,8 +12,8 @@
  * saying if command is ftp command or not
 
  * This includes, the list of ftp commands processed by server ftp.
- * The list of ftp commands is mkdir, user, pass, get, put, rmdir, pwd,
- * stat, help, quit, cd, ls, dele,
+ * The list of ftp commands is mkdir, user, pass, mkdir, rmdir, pwd,
+ * stat, help, quit, cd, ls, rm, send, recv
  */
 
 
@@ -28,8 +28,8 @@
 
 
 /* The port that the client will be connecting to */
-#define CONTROL_CONNECTION_FTP_PORT 4164
-#define DATA_CONNECTION_FTP_PORT 4165
+#define CONTROL_CONNECTION_FTP_PORT 4002
+#define DATA_CONNECTION_FTP_PORT 4001
 
 /* Error and OK codes */
 #define OK 0
@@ -88,10 +88,10 @@ int main(
 	int listenSocket; /* holds socket connection info */
 	int ccPort; /* Store port number */
 	char buffer[100]; /* amount of bytes of a file */
-	int bytesread; /* store number of bytes while reading file in send and recv cmds */
+	int bytesread = 600; /* store number of bytes while reading file in send and recv cmds */
 	FILE *fp; /* create file pointer to work with files in program */
-	bool userCheck = false;
-	bool passCheck = false;
+	bool userCheck = false; /* boolean variable to check if user has entered username, set to false until user enters correct ftp username */
+	bool passCheck = false; /* boolean variable to check if user has entered password, set to false until user enters correct ftp password */
 
 	/*
 	 * NOTE: without \n at the end of format string in printf,
@@ -99,16 +99,16 @@ int main(
 	 * output to display and you will not see it on monitor.
  	 */
 	printf("Started execution of client ftp\n");
-	// listen for data connection
+	/* listen for data connection */
 
-	status=clntConnect("10.3.200.17", &ccSocket); // open cc Socket
+	status=clntConnect("10.3.200.17", &ccSocket); /* open cc Socket, connect to socket */
 	if(status != 0)
 	{
 		printf("Connection to server failed, exiting main.\n");
 		return (status);
 	}
 
-	status = svcInitServer(&listenSocket); // connect to server, listen for data connection
+	status = svcInitServer(&listenSocket); /* listen for data connection, connect to server */
 	if(status != 0) {
 		return (status);
 	}
@@ -124,7 +124,7 @@ int main(
 
 		/* do while loop, enter an ftp command and argument, separate cmd and argument.
 		* Then send command and argument to server-side
-	  * repeat loop until user enters Quit
+	  * repeat loop until user enters quit
 		*/
 
 		do {
@@ -145,14 +145,16 @@ int main(
 				break;
 			}
 
-			if(strcmp(cmd, "user")) {
-				if(strcmp(userCmd, "user") != 0) {
+			if(strcmp(cmd, "user") == 0) {
+				if(strcmp(userCmd, "user") != 0) { /* if no argument is provided, then unsuccessful try, since user needs argument */
 						userCheck = true;
 				}
 			}
 
-			else if(strcmp(cmd, "pass")) {
-				if(strcmp(userCmd, "pass") != 0) {
+			else if(strcmp(cmd, "pass") == 0) {
+				if(userCheck == false) {
+				}
+				else if(strcmp(userCmd, "pass") != 0) { /* if no argument is provided, then unsuccessful try, since pass needs argument */
 					  passCheck = true;
 				}
 			}
@@ -161,7 +163,6 @@ int main(
 			* part of validation for send and recv cmds step
 			*/
 			if(userCheck == true && passCheck == true) {
-
 
 					/* send file from client to server, check cmd, perform data connection via socket to server
 					* open file with read mode, while file pointer is not null and not end of file, read into bytesread (put content in txt file)
@@ -173,10 +174,10 @@ int main(
 					* bytesread stores the number of bytes read
 					* finally close the file and close the data connection
 					*/
-					if(strcmp(cmd, "send") == 0) {
-						if(strcmp(userCmd, "send") != 0) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+					if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
+						if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 							dcSocket = accept(listenSocket, NULL, NULL);
-							fp = fopen("names.txt", "r+");
+							fp = fopen("my_quotes_cs.txt", "r+");
 							if(fp != NULL) {
 								printf("File opened\n");
 
@@ -203,10 +204,10 @@ int main(
 				 * then close file pointer and dcSocket
 				 * On client side create and open file, receive message and then write to that file
 				 */
-					else if(strcmp(cmd, "recv") == 0) {
-						if(strcmp(userCmd, "recv") != 0) { /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+				 else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
+						if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) { /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 							dcSocket = accept(listenSocket, NULL, NULL);
-							fp = fopen("recieve.txt", "w+"); // was r+
+							fp = fopen("movie_stars_sc.txt", "w+"); // was r+
 							if(fp != NULL) {
 								printf("File opened\n");
 
@@ -227,11 +228,6 @@ int main(
 						}
 					}
 
-				}
-
-				else if(userCheck == false && passCheck == false) {
-					printf("Enter username and password first before checking cmds!\n");
-					continue;
 				}
 
 				status = receiveMessage(ccSocket, replyMsg, sizeof(replyMsg), &msgSize);
