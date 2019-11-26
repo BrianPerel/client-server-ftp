@@ -370,6 +370,21 @@ int main(int argc, char *argv[]) {
 								}
 							}
 
+							/* mv cmd can be used to rename or move files
+							* rename (mv) = 'mv old-filename new-filename'
+							* move (mv) = 'mv filename destination-directory'
+							*/
+							else if(strcmp(cmd, "mv") == 0) {
+								cmdCheck = true;
+								status = system(userCmd);
+								if(status == 0) {
+									strcpy(replyMsg, "200 cmd OK\n");
+								}
+								else {
+									strcpy(replyMsg, "500 invalid syntax\nCommand Failed\n");
+								}
+							}
+
 
 							/* This block tests the pwd cmd, check cmd, then do a system call to perform action
 							* in which, pwd > pwdoutput.txt stores the content of pwd into the txt file
