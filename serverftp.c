@@ -224,9 +224,8 @@ int main(int argc, char *argv[]) {
 				* and then program terminates. cmd test 3, example 'quit'
 				* Brian Perel implemented this command
 				*/
-				else if(strcmp(cmd, "quit") == 0) {
-						cmdCheck = true;
-						userCheck, passCheck = true;
+				else if((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "bye") == 0)) {
+						userCheck, passCheck, cmdCheck = true;
 						strcpy(replyMsg, "200 cmd OK\nServer is closing\n");
 				}
 
@@ -236,9 +235,9 @@ int main(int argc, char *argv[]) {
 				* cmd test 4, example 'help'
 				* Jon Petani implemented this command
 				*/
-				else if(strcmp(cmd, "help") == 0) {
-						if(strcmp(userCmd, "help") == 0) {
-							cmdCheck = true;
+				else if((strcmp(cmd, "help") == 0) || (strcmp(cmd, "?") == 0)) {
+						if((strcmp(userCmd, "help") == 0) || (strcmp(cmd, "?") == 0)) {
+							userCheck, passCheck, cmdCheck = true;
 							strcpy(replyMsg, "200 cmd OK\n"
 							"user: Enter username and check against system. Must include a username as argument.\n"
 							"pass: Enter password and check against system. Must include a password as argument.\n"
@@ -504,7 +503,7 @@ int main(int argc, char *argv[]) {
 							strcpy(replyMsg, "Invalid FTP cmd\n");
 					}
 
-					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) && (strcmp(cmd, "stat") != 0) && (strcmp(cmd, "user") != 0)) {
+					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) && (strcmp(cmd, "?") != 0) && (strcmp(cmd, "stat") != 0) && (strcmp(cmd, "user") != 0)) {
 							strcpy(replyMsg, "Please enter username and password before testing cmds\n");
 					}
 
@@ -518,7 +517,7 @@ int main(int argc, char *argv[]) {
 	    {
 				break;
 	    }
-	} while(strcmp(userCmd, "quit") != 0);
+	} while((strcmp(userCmd, "quit") != 0) && (strcmp(userCmd, "bye") != 0));
 
 	printf("Closing control connection socket.\n");
 	close (ccSocket);  /* Close client control connection socket */

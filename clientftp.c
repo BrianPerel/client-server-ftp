@@ -235,7 +235,7 @@ int main(
 					break;
 				}
 
-		} while(strcmp(userCmd, "quit") != 0);
+			} while((strcmp(userCmd, "quit") != 0) && (strcmp(userCmd, "bye") != 0));
 
 	printf("Closing control connection\n");
 	close(ccSocket);  /* close control connection socket */
