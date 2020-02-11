@@ -3,10 +3,8 @@
  * Computer Networking - 477 - HW2
  * server FTP program
  *
- * NOTE: Starting homework #2, add more comments here describing the overall function
  * performed by server ftp program
- * This includes, the list of ftp commands processed by server ftp.
- * The list of ftp commands is mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
+ * The list of ftp commands: mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
 */
 
 #include <stdio.h>
@@ -21,16 +19,16 @@
 #include <stdlib.h>
 
 /*
-* data connection port and control connection port (2 ports)
-* for connecting to host (client). Both needed for tcp connections
-* for communications. Control port is used to pass control information and
-* data port is used to send and recieve files
-*/
+ * data connection port and control connection port (2 ports)
+ * for connecting to host (client). Both needed for tcp connections
+ * for communications. Control port is used to pass control information and
+ * data port is used to send and recieve files
+ */
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
 
-/* Error and OK constants codes, for if something goes wrong in program */
+/* Error and OK constants codes with values, for if something goes wrong in program */
 #define OK 0
 #define ER_INVALID_HOST_NAME -1
 #define ER_CREATE_SOCKET_FAILED -2
@@ -41,16 +39,17 @@
 #define ER_ACCEPT_FAILED -7
 
 
-/* Function prototypes
-* 1. svcInitServer = starts server, gives you required information to start
-* 2. sendMessage = server function to send reply messages to client side.
-* Function parameters: (s) the socket which is the channel you travel through to connect to client side,
-*  (msg) the message sent to client
-*
-* 3. receiveMessage = server function to receive transmission messages from client side,
-* buffer parameter allows for transmission of whitespace,
-* buffer size is the size of the buffer  (size of whitespace -> indents, spaces)
-*/
+/*
+ * Function prototypes
+ * 1. svcInitServer = starts server, gives you required information to start
+ * 2. sendMessage = server function to send reply messages to client side.
+ * Function parameters: (s) the socket which is the channel you travel through to connect to client side,
+ *  (msg) the message sent to client
+ *
+ * 3. receiveMessage = server function to receive transmission messages from client side,
+ * buffer parameter allows for transmission of whitespace,
+ * buffer size is the size of the buffer  (size of whitespace -> indents, spaces)
+ */
 int svcInitServer(int *s);
 int sendMessage(int s, char *msg, int  msgSize);
 int receiveMessage(int s, char *buffer, int  bufferSize, int *msgSize);
@@ -137,10 +136,11 @@ int main(int argc, char *argv[]) {
 
 	printf("Connected to client, calling receiveMsg to get ftp cmd from client \n");
 
-	/* Receive and process ftp commands from client until quit command.
-  * On receiving quit command, send reply to client and
-  * then close the control connection socket "ccSocket".
-  */
+	/*
+	 * Receive and process ftp commands from client until quit command.
+     * On receiving quit command, send reply to client and
+     * then close the control connection socket "ccSocket".
+     */
 	do {
 	    /* Receive client ftp commands until status of connection is less than 0, which would indicate failure */
  	    status=receiveMessage(ccSocket, userCmd, sizeof(userCmd), &msgSize);
@@ -151,10 +151,11 @@ int main(int argc, char *argv[]) {
 					break;
 	    }
 
-			/* Separate command and argument from userCmd, in order to be able to check the cmd entered alone from argument
-			* tokenization process = copy userCmd into temp variable, then break userCmd input into cmd and argument, the buffer is the space entered between cmd and arg
-			* everything before buffer (space) goes into cmd and everything after goes into argument
-			*/
+			/*
+			 * Separate command and argument from userCmd, in order to be able to check the cmd entered alone from argument
+			 * tokenization process = copy userCmd into temp variable, then break userCmd input into cmd and argument, the buffer is the space entered between cmd and arg
+			 * everything before buffer (space) goes into cmd and everything after goes into argument
+			 */
 			strcpy(temp, userCmd);
 			char *cmd = strtok(temp, " ");
 			char *argument = strtok(NULL, " ");
@@ -167,21 +168,23 @@ int main(int argc, char *argv[]) {
 			int usersLength = sizeof(users) / sizeof(users[0]);
 			int passLength = sizeof(pass) / sizeof(pass[0]);
 
-			/* boolean var used to check if cmd is valid or not, if cmd is valid var gets assigned true.
-			* If by end of program var never switches from false, then print invalid ftp cmd
-			*/
+			/*
+			 * boolean var used to check if cmd is valid or not, if cmd is valid var gets assigned true.
+			 * If by end of program var never switches from false, then print invalid ftp cmd
+			 */
 			bool cmdCheck = false;
 
-			/*
- 			* Starting Homework#2 program to process all ftp commands
- 			* See Homework#2 for list of ftp commands to implement.
- 			*/
+            /*
+ 			 * Starting Homework#2 program to process all ftp commands
+ 			 * See Homework#2 for list of ftp commands to implement.
+ 			 */
 
-				/* This block has the user login with useranme. Test for cmd to be user, then compare argument of user cmd to user array elements,
-				* search for username in user array. If argument is found in user array, reply success.
-				* If not, reply with invalid ftp username. cmd test 1, example: 'user Brian'
-				* Brian Perel implemented this command
-				*/
+				/*
+				 * This block has the user login with useranme. Test for cmd to be user, then compare argument of user cmd to user array elements,
+				 * search for username in user array. If argument is found in user array, reply success.
+				 * If not, reply with invalid ftp username. cmd test 1, example: 'user Brian'
+				 * Brian Perel implemented this command
+				 */
 				if(strcmp(cmd, "user") == 0) {
 					cmdCheck = true;
 					int x;
@@ -200,19 +203,20 @@ int main(int argc, char *argv[]) {
 				}
 
 
-				/* This block has the user login with password. Test for cmd to be pass, then compare argument of user cmd to pass array location userVar (which is the location of the username entered and found),
+			   /*
+				* This block has the user login with password. Test for cmd to be pass, then compare argument of user cmd to pass array location userVar (which is the location of the username entered and found),
 				* search for password in array, must match the password at that location in array to complete a pair match
 				* cmd test 2, example 'pass monkeys'
 				* Brian Perel implemented this command
-				*/
-				else if(strcmp(cmd, "pass") == 0) {
+                */
+				else if(strcmp(cmd, "pass") == 0) { /* If the cmd alone is equal to 'pass' enter conditional statement */
 					cmdCheck = true;
 					if(userCheck == false) {
-						strcpy(replyMsg, "Please enter an ftp username before entering a password\n");
+						strcpy(replyMsg, "Please enter an ftp username before entering a password\n"); /* return prompt message to client */
 					}
 					else if(strcmp(argument, pass[userVar]) == 0) {
-							strcpy(replyMsg, "Password correct\nLogin successful\n200 cmd OK\n");
-							passCheck = true;
+                        strcpy(replyMsg, "Password correct\nLogin successful\n200 cmd OK\n");
+                        passCheck = true;
 					}
 					else if(passCheck == false) {
 						strcpy(replyMsg, "Invalid password for the user\nLogin failed. Please enter username and password.\n");
@@ -220,21 +224,23 @@ int main(int argc, char *argv[]) {
 				}
 
 
-				/* This block tests the quit cmd, if quit is cmd then send replyMsg
-				* and then program terminates. cmd test 3, example 'quit'
-				* Brian Perel implemented this command
-				*/
+				/*
+				 * This block tests the quit cmd, if quit is cmd then send replyMsg
+				 * and then program terminates. cmd test 3, example 'quit'
+				 * Brian Perel implemented this command
+				 */
 				else if((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "bye") == 0)) {
 						userCheck, passCheck, cmdCheck = true;
 						strcpy(replyMsg, "200 cmd OK\nServer is closing\n");
 				}
 
 
-				/* This block tests the help cmd, if help is entered
-				* then send replyMsg with the description of all cmds together in 1 reply message
-				* cmd test 4, example 'help'
-				* Jon Petani implemented this command
-				*/
+				/*
+				 * This block tests the help cmd, if help is entered
+				 * then send replyMsg with the description of all cmds together in 1 reply message
+				 * cmd test 4, example 'help' or '?' -> mean the samething
+				 * Jon Petani implemented this command
+				 */
 				else if((strcmp(cmd, "help") == 0) || (strcmp(cmd, "?") == 0)) {
 						if((strcmp(userCmd, "help") == 0) || (strcmp(cmd, "?") == 0)) {
 							userCheck, passCheck, cmdCheck = true;
@@ -261,11 +267,11 @@ int main(int argc, char *argv[]) {
 
 
 				/*
-				* This block tests for the stat cmd, stat returns the status of
-				* the connection to the server or the general status of the server
-				*	cmd test 5, example 'stat -f /export/home/perel/HW2-101519'
-				* Jon Petani implemented this command
-				*/
+				 * This block tests for the stat cmd, stat returns the status of
+				 * the connection to the server or the general status of the server
+				 * cmd test 5, example 'stat -f /export/home/perel/HW2-101519'
+				 * Jon Petani implemented this command
+				 */
 				else if(strcmp(cmd, "stat") == 0) {
 					cmdCheck = true;
 					status = system(userCmd);
@@ -278,13 +284,14 @@ int main(int argc, char *argv[]) {
 				}
 
 
-				/* This statement will check if user has logged in or not.
-				* If user has not logged in they won't be able to test the below cmds
-				* userCheck and passCheck are boolean variables to verify that user entered both parts of login process
-				*/
+				/*
+				 * This statement will check if user has logged in or not.
+				 * If user has not logged in they won't be able to test the below cmds
+				 * userCheck and passCheck are boolean variables to verify that user entered both parts of login process
+				 */
 				if((userCheck == true) && (passCheck == true)) {
 
-						  /* This block tests for the mkdir cmd, check cmd, then do a system call to perform action
+						   /* This block tests for the mkdir cmd, check cmd, then do a system call to perform action
 							* and send replymsg to client if successful
 							* cmd test 6, example 'ls', 'mkdir abc', 'ls'
 							* Brian Perel implemented this command
@@ -301,7 +308,7 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the rmdir cmd, check cmd, then do a system call to perform action
+                           /* This block tests the rmdir cmd, check cmd, then do a system call to perform action
 							* and send replymsg to client if successful
 							* cmd test 7, example 'ls', 'rmdir abc', 'ls'
 							* Jon Petani implemented this command
@@ -335,12 +342,13 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the cd cmd, check cmd, then do a chdir call to perform actions (move to different dir)
-							* and send replymsg to client if successful
-							* use chdir() which performs a system call to change current working directory
-							* cmd test 8, example 'pwd', 'cd ..', 'pwd'
-							* Jon Petani implemented this command
-							*/
+							/*
+							 * This block tests the cd cmd, check cmd, then do a chdir call to perform actions (move to different dir)
+							 * and send replymsg to client if successful
+							 * use chdir() which performs a system call to change current working directory
+							 * cmd test 8, example 'pwd', 'cd ..', 'pwd'
+							 * Jon Petani implemented this command
+							 */
 							else if(strcmp(cmd, "cd") == 0) {
 								cmdCheck = true;
 								status = chdir(argument);
@@ -353,11 +361,12 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the rm cmd, check cmd, then do a system call to perform action
-							* and send replymsg to client if successful
-							* cmd test 9, example 'ls', (use touch to create a file before running this ftp program), 'rm file1', 'ls'
-							* Brian Perel implemented this command
-							*/
+							/*
+							 * This block tests the rm cmd, check cmd, then do a system call to perform action
+							 * and send replymsg to client if successful
+							 * cmd test 9, example 'ls', (use touch to create a file before running this ftp program), 'rm file1', 'ls'
+							 * Brian Perel implemented this command
+							 */
 							else if(strcmp(cmd, "rm") == 0) {
 								cmdCheck = true;
 								status = system(userCmd);
@@ -369,10 +378,11 @@ int main(int argc, char *argv[]) {
 								}
 							}
 
-							/* mv cmd can be used to rename or move files
-							* rename (mv) = 'mv old-filename new-filename'
-							* move (mv) = 'mv filename destination-directory'
-							*/
+							/*
+							 * mv cmd can be used to rename or move files
+							 * rename (mv) = 'mv old-filename new-filename'
+							 * move (mv) = 'mv filename destination-directory'
+							 */
 							else if(strcmp(cmd, "mv") == 0) {
 								cmdCheck = true;
 								status = system(userCmd);
@@ -385,13 +395,14 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the pwd cmd, check cmd, then do a system call to perform action
-							* in which, pwd > pwdoutput.txt stores the content of pwd into the txt file
-							* open the txt file and read the file content to terminal while sending replymsg back to client
-							* remove the txt file once operation is finished (content is read to replyMsg and sent)
-							* cmd test 10, example 'pwd'
-							* Jon Petani implemented this command
-							*/
+							/*
+							 * This block tests the pwd cmd, check cmd, then do a system call to perform action
+							 * in which, pwd > pwdoutput.txt stores the content of pwd into the txt file
+							 * open the txt file and read the file content to terminal while sending replymsg back to client
+							 * remove the txt file once operation is finished (content is read to replyMsg and sent)
+							 * cmd test 10, example 'pwd'
+							 * Jon Petani implemented this command
+							 */
 							else if(strcmp(cmd, "pwd") == 0) {
 								cmdCheck = true;
 							  status = system("pwd > pwdoutput.txt");
@@ -409,13 +420,14 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the ls cmd, check cmd, then do a system call to perform action
-							* in which ls > lsoutput.txt stores the content of ls into the txt file
-							* open the txt file and read the content to terminal while sending replymsg back to client
-							* remove the txt file once operation is finished (content is read to replyMsg and sent)
-							* cmd test 11, 'ls'
-							* Jon Petani implemented this command
-							*/
+							/*
+							 * This block tests the ls cmd, check cmd, then do a system call to perform action
+							 * in which ls > lsoutput.txt stores the content of ls into the txt file
+							 * open the txt file and read the content to terminal while sending replymsg back to client
+							 * remove the txt file once operation is finished (content is read to replyMsg and sent)
+							 * cmd test 11, 'ls'
+							 * Jon Petani implemented this command
+							 */
 							else if(strcmp(cmd, "ls") == 0) {
 								cmdCheck = true;
 								status = system("ls > lsoutput.txt");
@@ -433,12 +445,13 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the send cmd, check cmd, then establish connection with client, recieve the file as an argument
-							* Open file and write to the terminal screen. Receive information from client to store information for each line
-							* use msgSize to keep track of size of message which tracks size of file, once message size reaches 0 then the file is empty
-							* cmd test 12, file should be created before execution, example touch names.txt, 'ls', 'send filename' (cmd sends a file from clientftp to serverftp), 'ls'
-							* Brian Perel implemented this command
-							*/
+							/*
+							 * This block tests the send cmd, check cmd, then establish connection with client, recieve the file as an argument
+							 * Open file and write to the terminal screen. Receive information from client to store information for each line
+							 * use msgSize to keep track of size of message which tracks size of file, once message size reaches 0 then the file is empty
+							 * cmd test 12, file should be created before execution, example touch names.txt, 'ls', 'send filename' (cmd sends a file from clientftp to serverftp), 'ls'
+							 * Brian Perel implemented this command
+							 */
 							else if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
 								cmdCheck = true;
 								if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
@@ -465,11 +478,12 @@ int main(int argc, char *argv[]) {
 							}
 
 
-							/* This block tests the recv cmd, check recv, connect to client, open the file passed as argument,
-							* while not end of line read the content of the file and send to client as a message
-							* cmd test 13, example 'ls', 'recv filename' (server picks out received content and brings it back to client), 'ls'
-							* Brian Perel implemented this command
-							*/
+							/*
+							 * This block tests the recv cmd, check recv, connect to client, open the file passed as argument,
+							 * while not end of line read the content of the file and send to client as a message
+							 * cmd test 13, example 'ls', 'recv filename' (server picks out received content and brings it back to client), 'ls'
+							 * Brian Perel implemented this command
+							 */
 							else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
 								cmdCheck = true;
 								if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) {  /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
@@ -536,7 +550,6 @@ int clntConnect (
 	)
 {
 	int sock;	/* local variable to keep socket number */
-
 	struct sockaddr_in clientAddress;  	/* local client IP address */
 	struct sockaddr_in serverAddress;	/* server IP address */
 	struct hostent *serverIPstructure;	/* host entry having server IP address in binary */

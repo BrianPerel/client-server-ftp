@@ -4,10 +4,9 @@
  *
  * Client FTP program
  *
- * NOTE: Starting homework #2, add more comments here describing the overall function
  * performed by server ftp program
 
- * Purpose of program: the clientftp.c program file is what starts the connection to the server file which contains the logic to check the 13 commands
+ * Purpose of program / overall functionality: the clientftp.c program file is what starts the connection to the server file which contains the logic to check the 13 commands
  * You enter a command in this program in the main function, then the command is sent to the server-side program, then evaluated, then reply is sent
  * saying if command is ftp command or not
 
@@ -31,7 +30,7 @@
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
-/* Error and OK codes */
+/* Error and OK codes with values */
 #define OK 0
 #define ER_INVALID_HOST_NAME -1
 #define ER_CREATE_SOCKET_FAILED -2
@@ -51,7 +50,8 @@ char userCmd[1024];	/* user typed ftp command line read from keyboard */
 char cmd[1024];		/* ftp command extracted from userCmd */
 char argument[1024];	/* argument extracted from userCmd */
 char replyMsg[1024];    /* buffer to receive reply message from server */
-char temp[1024];
+char temp[1024]; /* char array will hold a copy of the userCmd array for division purposes */
+
 
 /*
  * main
@@ -74,6 +74,7 @@ char temp[1024];
  *	N	- Failed status, value of N depends on the function called or cmd processed
  */
 
+
 int main(
 	int argc,
 	char *argv[]
@@ -82,7 +83,7 @@ int main(
 
 	/* List of local variable */
 	int ccSocket;	/* Control connection socket - to be used in all client communication */
-	int dcSocket; /* data connection socket */
+	int dcSocket; /* data connection socket - to be used to transfer files between hosts*/
 	int msgSize;	/* size of the reply message received from the server */
 	int status; /* Variable to hold status of strcmp, stores integer. If variable has 0, then it can indicate success to program, else not */
 	int listenSocket; /* holds socket connection info */
@@ -102,14 +103,14 @@ int main(
 	/* listen for data connection */
 
 	status=clntConnect("10.3.200.17", &ccSocket); /* open cc Socket, connect to socket */
-	if(status != 0)
+	if(status != 0) /* If status value is not 0 then couldn't connect -> program terminates */
 	{
 		printf("Connection to server failed, exiting main.\n");
 		return (status);
 	}
 
 	status = svcInitServer(&listenSocket); /* listen for data connection, connect to server */
-	if(status != 0) {
+	if(status != 0) { /* Condition for successful connection to server */
 		return (status);
 	}
 
@@ -122,19 +123,21 @@ int main(
 	 */
 
 
-		/* do while loop, enter an ftp command and argument, separate cmd and argument.
-		* Then send command and argument to server-side
-	  * repeat loop until user enters quit
-		*/
+		/*
+		 * do while loop, enter an ftp command and argument, separate cmd and argument.
+		 * Then send command and argument to server-side
+	     * repeat loop until user enters quit
+		 */
 
 		do {
 			printf("my ftp> "); /* prompt user to enter cmd here */
 			gets(userCmd); /* take the cmd input here */
 
-			/* seperate cmd/args using strtok
-			* copy userCmd (string containing cmd and argument) into temp array
-			* break cmd into cmd and argument (by space)
-			*/
+			/*
+			 * seperate cmd/args using strtok() (tokenize)
+			 * copy userCmd (string containing cmd and argument) into temp array
+			 * break cmd into cmd and argument (by space). So everything before space (delimeter) will be assigned to cmd array and everything after would go into argument array
+			 */
 			strcpy(temp, userCmd);
 			char *cmd = strtok(temp, " ");
 			char *argument = strtok(NULL, " ");
@@ -159,21 +162,23 @@ int main(
 				}
 			}
 
-			/* if user has entered username and password, only then can we implement or receive anything for send or recieve cmds
-			* part of validation for send and recv cmds step
-			*/
+			/*
+			 * if user has entered username and password, only then can we implement or receive anything for send or recieve cmds
+			 * part of validation for send and recv cmds step
+			 */
 			if(userCheck == true && passCheck == true) {
 
-					/* send file from client to server, check cmd, perform data connection via socket to server
-					* open file with read mode, while file pointer is not null and not end of file, read into bytesread (put content in txt file)
-					* then open the txt file on client side
-					* dcSocket is only used for send and recv cmds
-					* dcSocket uses accept to wait and accept data connection from server
-					* open file to send data
-					* repeat until no file pointer
-					* bytesread stores the number of bytes read
-					* finally close the file and close the data connection
-					*/
+					/*
+					 * send file from client to server, check cmd, perform data connection via socket to server
+					 * open file with read mode, while file pointer is not null and not end of file, read into bytesread (put content in txt file)
+					 * then open the txt file on client side
+					 * dcSocket is only used for send and recv cmds
+					 * dcSocket uses accept to wait and accept data connection from server
+					 * open file to send data
+					 * repeat until no file pointer
+					 * bytesread stores the number of bytes read
+					 * finally close the file and close the data connection
+					 */
 					if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
 						if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 							dcSocket = accept(listenSocket, NULL, NULL);
@@ -200,10 +205,11 @@ int main(
 				 }
 
 
-				 /* Check recv cmd, connect to server, open file and receive message from server, then write that conetent into file
-				 * then close file pointer and dcSocket
-				 * On client side create and open file, receive message and then write to that file
-				 */
+				 /*
+				  * Check recv cmd, connect to server, open file and receive message from server, then write that conetent into file
+				  * then close file pointer and dcSocket
+				  * On client side create and open file, receive message and then write to that file
+				  */
 				 else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
 						if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) { /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
 							dcSocket = accept(listenSocket, NULL, NULL);
@@ -227,7 +233,6 @@ int main(
 							printf("500 invalid syntax\nCommand Failed\n");
 						}
 					}
-
 				}
 
 				status = receiveMessage(ccSocket, replyMsg, sizeof(replyMsg), &msgSize);
@@ -239,12 +244,14 @@ int main(
 
 	printf("Closing control connection\n");
 	close(ccSocket);  /* close control connection socket */
-  close(listenSocket); /* close data connection socket */
+    close(listenSocket); /* close data connection socket */
 	printf("Exiting client main \n");
 
 	return (status);
 
 }  /* end main() */
+
+
 
 
 
@@ -257,7 +264,7 @@ int svcInitServer (
 	int qlen;
 
 	/*create a socket endpoint */
-	if( (sock=socket(AF_INET, SOCK_STREAM,0)) <0)
+	if((sock=socket(AF_INET, SOCK_STREAM,0)) <0)
 	{
 		perror("cannot create socket");
 		return(ER_CREATE_SOCKET_FAILED);
@@ -271,7 +278,8 @@ int svcInitServer (
 	svcAddr.sin_addr.s_addr=htonl(INADDR_ANY);  /* server IP address */
 	svcAddr.sin_port=htons(DATA_CONNECTION_FTP_PORT);    /* server listen port # */
 
-	/* bind (associate) the listen socket number with server IP and port#.
+	/*
+	 * bind (associate) the listen socket number with server IP and port#.
 	 * bind is a socket interface function
 	 */
 	if(bind(sock,(struct sockaddr *)&svcAddr,sizeof(svcAddr))<0)
