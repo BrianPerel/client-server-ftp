@@ -4,12 +4,14 @@
  *
  * Client FTP program
  *
- * performed by server ftp program
-
- * Purpose of program / overall functionality: the clientftp.c program file is what starts the connection to the server file which contains the logic to check the 13 commands
- * You enter a command in this program in the main function, then the command is sent to the server-side program, then evaluated, then reply is sent
+ * connects to Unix Server
+ *
+ * Purpose of program / overall functionality: the clientftp.c program file is what starts the connection (using a socket) to the server file which contains the logic to check the 13 commands
+ * You enter a command in this program in the main function, then the command is sent to the server-side program, evaluated, reply is sent
  * saying if command is ftp command or not
-
+ *
+ * Use ftp protocol: file transferring between hosts, network protocol
+ *
  * This includes, the list of ftp commands processed by server ftp.
  * The list of ftp commands is mkdir, user, pass, mkdir, rmdir, pwd,
  * stat, help, quit, cd, ls, rm, send, recv
@@ -26,7 +28,7 @@
 #include <stdbool.h>
 
 
-/* The port that the client will be connecting to */
+/* The port that the client will be connecting to, the port (logical channel) identifies a type of network service*/
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
@@ -135,21 +137,21 @@ int main(
 
 			/*
 			 * seperate cmd/args using strtok() (tokenize)
-			 * copy userCmd (string containing cmd and argument) into temp array
+			 * copy userCmd (string containing cmd and argument) into temp array so that original array is not touched
 			 * break cmd into cmd and argument (by space). So everything before space (delimeter) will be assigned to cmd array and everything after would go into argument array
 			 */
 			strcpy(temp, userCmd);
 			char *cmd = strtok(temp, " ");
 			char *argument = strtok(NULL, " ");
 
-			/* send the userCmd to the server */
+			/* send the userCmd to the server using sendMessage() which uses socket */
 			status = sendMessage(ccSocket, userCmd, strlen(userCmd) + 1);
 			if(status != OK) {
 				break;
 			}
 
 			if(strcmp(cmd, "user") == 0) {
-				if(strcmp(userCmd, "user") != 0) { /* if no argument is provided, then unsuccessful try, since user needs argument */
+				if(strcmp(userCmd, "user") != 0) { /* if no argument is provided, then unsuccessful try, since user needs argument - username */
 						userCheck = true;
 				}
 			}
@@ -169,7 +171,8 @@ int main(
 			if(userCheck == true && passCheck == true) {
 
 					/*
-					 * send file from client to server, check cmd, perform data connection via socket to server
+					 * Function Purpose: send file from client to server
+					 * check cmd, perform data connection via socket to server
 					 * open file with read mode, while file pointer is not null and not end of file, read into bytesread (put content in txt file)
 					 * then open the txt file on client side
 					 * dcSocket is only used for send and recv cmds
@@ -181,15 +184,15 @@ int main(
 					 */
 					if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
 						if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
-							dcSocket = accept(listenSocket, NULL, NULL);
-							fp = fopen("my_quotes_cs.txt", "r+");
-							if(fp != NULL) {
+							dcSocket = accept(listenSocket, NULL, NULL); /* use accept() to listen for connection via socket */
+							fp = fopen("my_quotes_cs.txt", "r+"); /* open the file from client side */
+							if(fp != NULL) { /* validate that file pointer is not null, file is not empty */
 								printf("File opened\n");
 
-							while(!feof(fp)) {
-								bytesread = fread(buffer, 1, 100, fp);
+							while(!feof(fp)) { /* loop while not end of line */
+								bytesread = fread(buffer, 1, 100, fp); /* read 1 line at a time, reading 100 bytes from file a time */
 								printf("Number of bytes read: %d\n", bytesread);
-								sendMessage(dcSocket, buffer, bytesread);
+								sendMessage(dcSocket, buffer, bytesread); /* send data to server-side */
 				   		}
 							fclose(fp);
 							close(dcSocket);
@@ -206,18 +209,19 @@ int main(
 
 
 				 /*
-				  * Check recv cmd, connect to server, open file and receive message from server, then write that conetent into file
+				  * Check recv cmd, connect to server, open file and receive message from server, then write that content into file
 				  * then close file pointer and dcSocket
-				  * On client side create and open file, receive message and then write to that file
+				  * On client side create and open file, receive message (using receiveMessage() which uses socket), and then write to that file
 				  */
 				 else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
 						if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) { /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
-							dcSocket = accept(listenSocket, NULL, NULL);
-							fp = fopen("movie_stars_sc.txt", "w+"); // was r+
+							dcSocket = accept(listenSocket, NULL, NULL); /* establish the data connection using socket / listen for socket */
+							fp = fopen("movie_stars_sc.txt", "w+"); // open the original file on client side
 							if(fp != NULL) {
 								printf("File opened\n");
 
 								do {
+                                    /* while message size > 0 receive message and write to the newly created txt file on client side */
 		 							 status = receiveMessage(dcSocket, buffer, sizeof(buffer), &msgSize);
 		 							 fwrite(buffer, 1, msgSize, fp);
 		 					  } while((msgSize > 0) && (status == 0));

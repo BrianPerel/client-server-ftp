@@ -3,8 +3,11 @@
  * Computer Networking - 477 - HW2
  * server FTP program
  *
- * performed by server ftp program
+ * cmds analyzed by server ftp program
+ *
+ * Must run server ftp program before running client. Otherwise the connection from client will fail since server is not running (listening for connection)
  * The list of ftp commands: mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
+ * Program analyzes and detects valid and invalid cases such as wrong cmds, wrong number of arguments for cmds, invalid filename
 */
 
 #include <stdio.h>
@@ -22,13 +25,13 @@
  * data connection port and control connection port (2 ports)
  * for connecting to host (client). Both needed for tcp connections
  * for communications. Control port is used to pass control information and
- * data port is used to send and recieve files
+ * data connection port is used to send and recieve files
  */
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
 
-/* Error and OK constants codes with values, for if something goes wrong in program */
+/* Error and OK constants codes with values, for if something goes wrong in program these values are returned */
 #define OK 0
 #define ER_INVALID_HOST_NAME -1
 #define ER_CREATE_SOCKET_FAILED -2
@@ -455,16 +458,16 @@ int main(int argc, char *argv[]) {
 							else if((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
 								cmdCheck = true;
 								if((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
-									status = clntConnect("10.3.200.17", &dcSocket);
+									status = clntConnect("10.3.200.17", &dcSocket); /* connect to client */
 									if(status != 0) {
 										printf("Couldn't create data connection\n");
 										strcpy(replyMsg, "Couldn't create data connection\n");
 									}
 								  else {
 										printf("Successfully Created data connection\n");
-										fp = fopen(argument, "w+");
+										fp = fopen(argument, "w+"); /* open file in write mode */
 										do {
-												status = receiveMessage(dcSocket, buffer, sizeof(buffer), &msgSize);
+												status = receiveMessage(dcSocket, buffer, sizeof(buffer), &msgSize); /* receive message from client and write content to txt file created, while msgSize > 0 */
 												fwrite(buffer, 1, msgSize, fp);
 										} while((msgSize > 0) && (status == 0));
 										strcpy(replyMsg, "200 cmd OK\n");
@@ -487,7 +490,7 @@ int main(int argc, char *argv[]) {
 							else if((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
 								cmdCheck = true;
 								if((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) {  /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
-									status = clntConnect("10.3.200.17", &dcSocket);
+									status = clntConnect("10.3.200.17", &dcSocket); /* connect to client using data connection socket */
 									if(status != 0) {
 										printf("Couldn't create data connection\n");
 										strcpy(replyMsg, "Couldn't create data connection\n");
@@ -497,6 +500,7 @@ int main(int argc, char *argv[]) {
 										strcpy(replyMsg, "Successfully created data connection\n");
 										fp = fopen(argument, "r+");
 										while(!feof(fp)) {
+                                            /* while not end of file read 100 bytes into bytesread array at a time */
 											bytesread = fread(buffer, 1, 100, fp);
 											printf("Number of bytes read: %d\n", bytesread);
 											sendMessage(dcSocket, buffer, bytesread);
