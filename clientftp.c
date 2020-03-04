@@ -43,8 +43,8 @@
 
 /* Function prototypes */
 int clntConnect(char	*serverName, int *s); /* connects you to the client */
-int sendMessage (int s, char *msg, int  msgSize);
-int receiveMessage(int s, char *buffer, int  bufferSize, int *msgSize);
+int sendMessage (int s, char *msg, int  msgSize); /* sends cmd and arg to server */
+int receiveMessage(int s, char *buffer, int  bufferSize, int *msgSize); /* receive reply from server */
 
 
 /* List of all global variables: char arrays (Strings) */
@@ -267,7 +267,7 @@ int svcInitServer (
 	struct sockaddr_in svcAddr;
 	int qlen;
 
-	/*create a socket endpoint */
+	/*create a socket endpoint, check for errors, less than 0 value indicates error hit */
 	if((sock=socket(AF_INET, SOCK_STREAM,0)) <0)
 	{
 		perror("cannot create socket");
