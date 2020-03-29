@@ -6,4 +6,4 @@
 
 ftp cmds you can use: gets, puts, ls, dir, cd, mv, rmdir, mkdir, help, send, recv, quit, stat 
 
-[Check it out here](https://brianperel.github.io/Project4.htm){:target="_blank"}?
+[Check it out here](https://brianperel.github.io/Project4.htm)
