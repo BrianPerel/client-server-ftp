@@ -6,4 +6,4 @@ Steps: Launch client and server .exe, enter ftp username and password, send cmds
 
 ftp cmds you can use: gets, puts, ls, dir, cd, mv, rmdir, mkdir, help, send, recv, quit, stat 
 
-[Check it out here](https://brianperel.github.io/project4.htm)
+[Check it out here](https://brianperel.github.io/project4.html)
