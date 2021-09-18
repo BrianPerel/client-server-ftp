@@ -2,6 +2,7 @@
 
 Implemented the FTP Protocol in C language which runs FTP commands using the system library and socket programming on PUTTY terminal emulator.
 
+NOTE: These C programs are UNIX specific. Be sure to compile and run them only on a UNIX system.
 Steps: Launch client and server .exe, enter ftp username and password, send cmds, server will reply with correct or incorrect reply message 
 
 ftp cmds you can use: gets, puts, ls, dir, cd, mv, rmdir, mkdir, help, send, recv, quit, stat 
