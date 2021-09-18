@@ -1,6 +1,6 @@
 # client-server ftp program 
 
-Implemented FTP Protocol in C language. Implemented several FTP commands using the system library and socket programming on PUTTY.
+Implemented the FTP Protocol in C language which runs FTP commands using the system library and socket programming on PUTTY.
 
 Steps: Launch client and server .exe, enter ftp username and password, send cmds, server will reply with correct or incorrect reply message 
 
