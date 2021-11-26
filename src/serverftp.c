@@ -1,12 +1,13 @@
 /*
  * By: Brian Perel and Jon Petani
  * Computer Networking - 477 - HW2
- * server FTP program
  *
- * cmds analyzed by server ftp program
+ * Server FTP program
  *
- * Must run server ftp program before running client. Otherwise the connection from client will fail since server is not running (listening for connection)
- * The list of ftp commands: mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
+ * cmds are analyzed by this server ftp program
+ *
+ * You must run the server ftp program before running client. Otherwise the connection from client will fail since server is not running (listening for connection)
+ * The list of ftp commands: gets, puts, mkdir, user, pass, mkdir, rmdir, pwd, stat, help, quit, cd, ls, rm, send, recv
  * Program analyzes and detects valid and invalid cases such as wrong cmds, wrong number of arguments for cmds, invalid filename
 */
 
@@ -30,7 +31,6 @@
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
-
 /* Error and OK constants codes with values, for if something goes wrong in program these values are returned */
 #define OK 0
 #define ER_INVALID_HOST_NAME -1
@@ -40,7 +40,6 @@
 #define ER_SEND_FAILED -5
 #define ER_RECEIVE_FAILED -6
 #define ER_ACCEPT_FAILED -7
-
 
 /*
  * Function prototypes
@@ -54,20 +53,17 @@
  * buffer size is the size of the buffer  (size of whitespace -> indents, spaces)
  */
 int svcInitServer(int *s);
-int sendMessage(int s, char *msg, int  msgSize);
-int receiveMessage(int s, char *buffer, int  bufferSize, int *msgSize);
+int sendMessage(int s, char *msg, int msgSize);
+int receiveMessage(int s, char *buffer, int bufferSize, int *msgSize);
 
-
-/* List of all global variables (char arrays) */
 char userCmd[1024];	/* user typed ftp command line received from client */
-char cmd[1024];		/* ftp command (without argument) extracted from userCmd */
-char argument[1024];	/* argument (without ftp command) extracted from userCmd */
-char replyMsg[1024];  /* buffer to send reply message to client */
+char cmd[1024]; /* ftp command (without argument) extracted from userCmd */
+char argument[1024]; /* argument (without ftp command) extracted from userCmd */
+char replyMsg[1024]; /* buffer to send reply message to client */
 char temp[1024]; /* temp char array (string) to hold userCmd before broken into 2 parts */
 int userVar; /* Hold a temp variable value */
 int bytesread = 600; /* variable used to hold value of a file during file I/O in below cmds, since requested to transfer 100 bytes of a file at a time */
 static FILE *fp; /* declare a global file pointer to use for reading/writing ls, pwd, send cmds */
-
 
 /*
  * main
@@ -91,7 +87,6 @@ static FILE *fp; /* declare a global file pointer to use for reading/writing ls,
  */
 int main(int argc, char *argv[]) {
 
-	/* List of local varibale */
 	int msgSize;        /* Size of msg received in octets (bytes) */
 	int listenSocket;   /* listening server ftp socket for client connect request */
 	int ccSocket;        /* Control connection socket - to be used in all client communication, to transfer control information between hosts */
@@ -103,18 +98,17 @@ int main(int argc, char *argv[]) {
 
 	/*
 	 * NOTE: without \n at the end of format string in printf,
-         * UNIX will buffer (not flush)
+     * UNIX will buffer (not flush)
 	 * output to display and you will not see it on monitor.
 	*/
 	printf("Started execution of server ftp\n");
 
-	 /* initialize (start) server ftp */
-	printf("Initialize ftp server\n");
+	printf("Initialize (start) ftp server\n");
 
 	/* Storing value of listenSocket from function into status, to start server */
 	status=svcInitServer(&listenSocket);
-	if(status != 0)
-	{
+
+	if(status != 0) {
 		printf("Exiting server ftp due to svcInitServer returned error\n");
 		exit(status);
 	}
@@ -129,8 +123,7 @@ int main(int argc, char *argv[]) {
 	printf("Came out of accept() function \n");
 
 	/* if value received from accept function is not 0, then error exists */
-	if(ccSocket < 0)
-	{
+	if(ccSocket < 0) {
 		perror("cannot accept connection:");
 		printf("Server ftp is terminating after closing listen socket.\n");
 		close(listenSocket);  /* close listen socket */
@@ -146,12 +139,11 @@ int main(int argc, char *argv[]) {
      */
 	do {
 	    /* Receive client ftp commands until status of connection is less than 0, which would indicate failure */
- 	    status=receiveMessage(ccSocket, userCmd, sizeof(userCmd), &msgSize);
-	    if(status < 0)
-	    {
-					printf("Receive message failed. Closing control connection\n");
-					printf("Server ftp is terminating.\n");
-					break;
+ 	    status = receiveMessage(ccSocket, userCmd, sizeof(userCmd), &msgSize);
+	    if(status < 0) {
+			printf("Receive message failed. Closing control connection\n");
+			printf("Server ftp is terminating.\n");
+			break;
 	    }
 
 			/*
@@ -190,8 +182,7 @@ int main(int argc, char *argv[]) {
 				 */
 				if(strcmp(cmd, "user") == 0) {
 					cmdCheck = true;
-					int x;
-					for(x = 0; x < usersLength-2; x++) {
+					for(int x = 0; x < usersLength-2; x++) {
 						if(strcmp(argument, users[x]) == 0) {
 							strcpy(replyMsg, "ftp Username correct\n200 cmd OK\n");
 							userVar = x;
@@ -204,7 +195,6 @@ int main(int argc, char *argv[]) {
 						printf("Invalid ftp username\nUsername not found\n");
 					}
 				}
-
 
 			   /*
 				* This block has the user login with password. Test for cmd to be pass, then compare argument of user cmd to pass array location userVar (which is the location of the username entered and found),
@@ -268,7 +258,6 @@ int main(int argc, char *argv[]) {
 						}
 				}
 
-
 				/*
 				 * This block tests for the stat cmd, stat returns the status of
 				 * the connection to the server or the general status of the server
@@ -286,14 +275,12 @@ int main(int argc, char *argv[]) {
 					}
 				}
 
-
 				/*
 				 * This statement will check if user has logged in or not.
 				 * If user has not logged in they won't be able to test the below cmds
 				 * userCheck and passCheck are boolean variables to verify that user entered both parts of login process
 				 */
 				if((userCheck == true) && (passCheck == true)) {
-
 						   /* This block tests for the mkdir cmd, check cmd, then do a system call to perform action
 							* and send replymsg to client if successful
 							* cmd test 6, example 'ls', 'mkdir abc', 'ls'
@@ -327,9 +314,8 @@ int main(int argc, char *argv[]) {
 								}
 							}
 
-
 							else if(strcmp(cmd, "dir") == 0) {
-								cmdCheck = true;
+							  cmdCheck = true;
 							  status = system("dir > diroutput.txt");
 								if((strcmp(userCmd, "dir") == 0) && status == 0) {
 									fp = fopen("diroutput.txt", "r");
@@ -343,7 +329,6 @@ int main(int argc, char *argv[]) {
 									strcpy(replyMsg, "500 invalid syntax\nCommand Failed\n");
 								}
 							}
-
 
 							/*
 							 * This block tests the cd cmd, check cmd, then do a chdir call to perform actions (move to different dir)
@@ -362,7 +347,6 @@ int main(int argc, char *argv[]) {
 									strcpy(replyMsg, "500 invalid syntax\nCommand Failed\n");
 								}
 							}
-
 
 							/*
 							 * This block tests the rm cmd, check cmd, then do a system call to perform action
@@ -397,7 +381,6 @@ int main(int argc, char *argv[]) {
 								}
 							}
 
-
 							/*
 							 * This block tests the pwd cmd, check cmd, then do a system call to perform action
 							 * in which, pwd > pwdoutput.txt stores the content of pwd into the txt file
@@ -407,7 +390,7 @@ int main(int argc, char *argv[]) {
 							 * Jon Petani implemented this command
 							 */
 							else if(strcmp(cmd, "pwd") == 0) {
-								cmdCheck = true;
+							  cmdCheck = true;
 							  status = system("pwd > pwdoutput.txt");
 								if((strcmp(userCmd, "pwd") == 0) && status == 0) {
 									fp = fopen("pwdoutput.txt", "r");
@@ -447,7 +430,6 @@ int main(int argc, char *argv[]) {
 								}
 							}
 
-
 							/*
 							 * This block tests the send cmd, check cmd, then establish connection with client, recieve the file as an argument
 							 * Open file and write to the terminal screen. Receive information from client to store information for each line
@@ -479,7 +461,6 @@ int main(int argc, char *argv[]) {
 									strcpy(replyMsg, "500 invalid syntax\nCommand Failed\n");
 								}
 							}
-
 
 							/*
 							 * This block tests the recv cmd, check recv, connect to client, open the file passed as argument,
@@ -515,13 +496,14 @@ int main(int argc, char *argv[]) {
 								}
 						 }
 
-					} /* close (userCheck==true and passCheck==true) if statement */
+					}
 
 					if(userCheck == true && passCheck == true && cmdCheck == false) {
 							strcpy(replyMsg, "Invalid FTP cmd\n");
 					}
 
-					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) && (strcmp(cmd, "?") != 0) && (strcmp(cmd, "stat") != 0) && (strcmp(cmd, "user") != 0)) {
+					else if((userCheck == false) && (passCheck == false) && (strcmp(cmd, "help") != 0) &&
+						(strcmp(cmd, "?") != 0) && (strcmp(cmd, "stat") != 0) && (strcmp(cmd, "user") != 0)) {
 							strcpy(replyMsg, "Please enter username and password before testing cmds\n");
 					}
 
@@ -530,9 +512,8 @@ int main(int argc, char *argv[]) {
 	     * each command received in this implementation.
 	     */
 	    status=sendMessage(ccSocket,replyMsg,strlen(replyMsg) + 1);	/* Added 1 to include NULL character in */
-				/* the reply string strlen does not count NULL character */
-	    if(status < 0)
-	    {
+
+	    if(status < 0) {
 				break;
 	    }
 	} while((strcmp(userCmd, "quit") != 0) && (strcmp(userCmd, "bye") != 0));
@@ -548,27 +529,26 @@ int main(int argc, char *argv[]) {
 	return (status);
 }
 
-int clntConnect (
-	char *serverName, /* server IP address in dot notation (input) */
-	int *s 		  /* control connection socket number (output) */
-	)
-{
+
+/*
+ * Parameters
+ * serverName	- IP address of server in dot notation (input)
+ * s		- Control connection socket number (output)
+ */
+int clntConnect (char *serverName, int *s) {
 	int sock;	/* local variable to keep socket number */
 	struct sockaddr_in clientAddress;  	/* local client IP address */
 	struct sockaddr_in serverAddress;	/* server IP address */
 	struct hostent *serverIPstructure;	/* host entry having server IP address in binary */
 
-
 	/* Get IP address os server in binary from server name (IP in dot natation) */
-	if((serverIPstructure = gethostbyname(serverName)) == NULL)
-	{
+	if((serverIPstructure = gethostbyname(serverName)) == NULL) {
 		printf("%s is unknown server. \n", serverName);
 		return (ER_INVALID_HOST_NAME);  /* error return */
 	}
 
 	/* Create control connection socket */
-	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
+	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("cannot create socket ");
 		return (ER_CREATE_SOCKET_FAILED);	/* error return */
 	}
@@ -584,13 +564,11 @@ int clntConnect (
 			  /* from 1024 to (64K -1) */
 
 	/* Associate the socket with local client IP address and port */
-	if(bind(sock,(struct sockaddr *)&clientAddress,sizeof(clientAddress))<0)
-	{
+	if(bind(sock, (struct sockaddr *) &clientAddress, sizeof(clientAddress)) < 0) {
 		perror("cannot bind");
 		close(sock);
 		return(ER_BIND_FAILED);	/* bind failed */
 	}
-
 
 	/* Initialize serverAddress memory to 0 */
 	memset((char *) &serverAddress, 0, sizeof(serverAddress));
@@ -602,20 +580,17 @@ int clntConnect (
 	serverAddress.sin_port = htons(DATA_CONNECTION_FTP_PORT);
 
 	/* Connect to the server */
-	if (connect(sock, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0)
-	{
+	if (connect(sock, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0) {
 		perror("Cannot connect to server ");
 		close (sock); 	/* close the control connection socket */
 		return(ER_CONNECT_FAILED);  	/* error return */
 	}
 
-
 	/* Store listen socket number to be returned in output parameter 's' */
 	*s=sock;
 
 	return(OK); /* successful return */
-}  // end of clntConnect() */
-
+}
 
 /*
  * svcInitServer
@@ -630,22 +605,19 @@ int clntConnect (
  *	OK			- Successfully created listen socket and listening
  *	ER_CREATE_SOCKET_FAILED	- socket creation failed
  */
+int svcInitServer (int *s) {
 
-int svcInitServer (int *s) {	/*Listen socket number returned from this function */
-
-	int sock;
+	int sock, qlen;
 	struct sockaddr_in svcAddr;
-	int qlen;
 
 	/*create a socket endpoint */
-	if( (sock=socket(AF_INET, SOCK_STREAM,0)) <0)
-	{
+	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("cannot create socket");
 		return(ER_CREATE_SOCKET_FAILED);
 	}
 
 	/*initialize memory of svcAddr structure to zero. */
-	memset((char *)&svcAddr,0, sizeof(svcAddr));
+	memset((char *) &svcAddr, 0, sizeof(svcAddr));
 
 	/* initialize svcAddr to have server IP address and server listen port#. */
 	svcAddr.sin_family = AF_INET;
@@ -655,8 +627,7 @@ int svcInitServer (int *s) {	/*Listen socket number returned from this function 
 	/* bind (associate) the listen socket number with server IP and port#.
 	 * bind is a socket interface function
 	 */
-	if(bind(sock,(struct sockaddr *)&svcAddr,sizeof(svcAddr))<0)
-	{
+	if(bind(sock, (struct sockaddr *) &svcAddr, sizeof(svcAddr)) < 0) {
 		perror("cannot bind");
 		close(sock);
 		return(ER_BIND_FAILED);	/* bind failed */
@@ -671,7 +642,6 @@ int svcInitServer (int *s) {	/*Listen socket number returned from this function 
 	 */
 	qlen=1;
 
-
 	/*
 	 * Listen for connection request to come from client ftp.
 	 * This is a non-blocking socket interface function call,
@@ -681,14 +651,13 @@ int svcInitServer (int *s) {	/*Listen socket number returned from this function 
 	 * accept it on behalf of server ftp when the connection requests comes.
 	 */
 
-	listen(sock,qlen);  /* socket interface function call */
+	listen(sock, qlen);  /* socket interface function call */
 
 	/* Store listen socket number to be returned in output parameter 's' */
-	*s=sock;
+	*s = sock;
 
 	return(OK); /*successful return */
 }
-
 
 /*
  * sendMessage
@@ -697,39 +666,29 @@ int svcInitServer (int *s) {	/*Listen socket number returned from this function 
  *
  * Parameters
  * s		- Socket to be used to send msg to client (input)
- * msg  	- Pointer to character arrary containing msg to be sent (input)
+ * msg  	- Pointer to character array buffer containing msg to be sent (input)
  * msgSize	- Number of bytes, including NULL, in the msg to be sent to client (input)
  *
  * Return status
  *	OK		- Msg successfully sent
  *	ER_SEND_FAILED	- Sending msg failed
  */
-
-int sendMessage(
-	int    s,	/* socket to be used to send msg to client */
-	char   *msg, 	/* buffer having the message data */
-	int    msgSize 	/* size of the message/data in bytes */
-	)
-{
-	int i;
-
+int sendMessage(int s, char *msg, int msgSize) {
 
 	/* Print the message to be sent byte by byte as character */
-	for(i=0; i<msgSize; i++)
-	{
+	for(int i = 0; i < msgSize; i++) {
 		printf("%c",msg[i]);
 	}
 	printf("\n");
 
-	if((send(s, msg, msgSize, 0)) < 0) /* socket interface call to transmit */
-	{
+	/* socket interface call to transmit */
+	if((send(s, msg, msgSize, 0)) < 0)  {
 		perror("unable to send ");
 		return(ER_SEND_FAILED);
 	}
 
 	return(OK); /* successful send */
 }
-
 
 /*
  * receiveMessage
@@ -738,39 +697,29 @@ int sendMessage(
  *
  * Parameters
  * s		- Socket to be used to receive msg from client (input)
- * buffer  	- Pointer to character arrary to store received msg (input/output)
+ * buffer  	- Pointer to character array buffer to store received msg (input/output)
  * bufferSize	- Maximum size of the array, "buffer" in octent/byte (input)
  *		    This is the maximum number of bytes that will be stored in buffer
- * msgSize	- Actual # of bytes received and stored in buffer in octet/byes (output)
+ * msgSize	- # of bytes (size) of the received msg in octet/bytes (output)
  *
  * Return status
  *	OK			- Msg successfully received
  *	R_RECEIVE_FAILED	- Receiving msg failed
  */
+int receiveMessage(int s, char *buffer, int bufferSize, int *msgSize){
 
+	*msgSize = recv(s, buffer, bufferSize, 0); /* socket interface call to receive msg */
 
-int receiveMessage (
-	int s, 		/* socket */
-	char *buffer, 	/* buffer to store received msg */
-	int bufferSize, /* how large the buffer is in octet */
-	int *msgSize 	/* size of the received msg in octet */
-	)
-{
-	int i;
-
-	*msgSize=recv(s,buffer,bufferSize,0); /* socket interface call to receive msg */
-
-	if(*msgSize<0)
-	{
+	if(*msgSize < 0) {
 		perror("unable to receive");
 		return(ER_RECEIVE_FAILED);
 	}
 
 	/* Print the received msg byte by byte */
-	for(i=0;i<*msgSize;i++)
-	{
+	for(int i = 0; i < *msgSize; i++) {
 		printf("%c", buffer[i]);
 	}
+
 	printf("\n");
 
 	return (OK);
