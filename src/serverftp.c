@@ -158,6 +158,7 @@ int main(int argc, char *argv[]) {
 				"Michelle", "Jon", "Ava", "Isabella", "Alexandra", "Mia",
 				"Scarface", "Terminator", "Dr. Java", "Tango", "Ryder", "Jack",
 				"\0" };
+
 		char *pass[20] = { "bananas", "monkeys", "friday", "book",
 				"framingham1", "password", "20passwords", "Car", "Computer",
 				"Phone", "BestPassword", "1password", "commander", "keys",
@@ -212,7 +213,7 @@ int main(int argc, char *argv[]) {
 			cmdCheck = true;
 			if (userCheck == false) {
 				strcpy(replyMsg,
-						"Please enter an ftp username before entering a password\n"); /* return prompt message to client */
+						"Please enter an ftp username before entering a password\n");
 			} else if (strcmp(argument, pass[userVar]) == 0) {
 				strcpy(replyMsg,
 						"Password correct\nLogin successful\n200 cmd OK\n");

@@ -4,7 +4,7 @@
  *
  * Client FTP program
  *
- * connects to Unix Server
+ * connects to Linux/Unix Server
  *
  * Purpose of program / overall functionality: the clientftp.c program file is what starts the connection (using a socket) to the server file which contains the logic to check the 13 commands
  * You enter a command in this program in the main function, then the command is sent to the server-side program, evaluated, reply is sent
@@ -25,11 +25,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-/* The port that the client will be connecting to, the port (logical channel) identifies a type of network service*/
+/* The port that the client will be connecting to, the port (logical channel) identifies a type of network service */
 #define CONTROL_CONNECTION_FTP_PORT 4002
 #define DATA_CONNECTION_FTP_PORT 4001
 
-/* Error and OK codes with values */
+/* OK and error codes with values */
 #define OK 0
 #define ER_INVALID_HOST_NAME -1
 #define ER_CREATE_SOCKET_FAILED -2
@@ -146,8 +146,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		else if (strcmp(cmd, "pass") == 0) {
-			if (userCheck == false) {
-			} else if (strcmp(userCmd, "pass") != 0) { /* if no argument is provided, then unsuccessful try, since pass needs argument */
+			if (strcmp(userCmd, "pass") != 0) { /* if no argument is provided, then unsuccessful try, since pass needs argument */
 				passCheck = true;
 			}
 		}
@@ -171,8 +170,8 @@ int main(int argc, char *argv[]) {
 			 * finally close the file and close the data connection
 			 */
 			if ((strcmp(cmd, "send") == 0) || (strcmp(cmd, "put") == 0)) {
-				if ((strcmp(userCmd, "send") != 0)
-						|| (strcmp(userCmd, "put") != 0)) { /* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+				/* If you enter send cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+				if ((strcmp(userCmd, "send") != 0) || (strcmp(userCmd, "put") != 0)) {
 					dcSocket = accept(listenSocket, NULL, NULL); /* use accept() to listen for connection via socket */
 					fp = fopen("my_quotes_cs.txt", "r+"); /* open the file from client side */
 					if (fp != NULL) { /* validate that file pointer is not null, file is not empty */
@@ -200,8 +199,8 @@ int main(int argc, char *argv[]) {
 			 * On client side create and open file, receive message (using receiveMessage() which uses socket), and then write to that file
 			 */
 			else if ((strcmp(cmd, "recv") == 0) || (strcmp(cmd, "get") == 0)) {
-				if ((strcmp(userCmd, "recv") != 0)
-						|| (strcmp(userCmd, "get") != 0)) { /* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+				/* If you enter recv cmd with an argument proceed, otherwise (else) there is no argument so the cmd cannot be executed. In that case print invalid syntax since cmd is correct but syntax is not */
+				if ((strcmp(userCmd, "recv") != 0) || (strcmp(userCmd, "get") != 0)) {
 					dcSocket = accept(listenSocket, NULL, NULL); /* establish the data connection using socket / listen for socket */
 					fp = fopen("movie_stars_sc.txt", "w+"); // open the original file on client side
 					if (fp != NULL) {
@@ -259,7 +258,7 @@ int svcInitServer(int *s) {
 	int sock, qlen;
 	struct sockaddr_in svcAddr;
 
-	/* create a socket endpoint that check for errors, less than 0 value indicates error hit */
+	/* create a socket end-point that check for errors, less than 0 value indicates error hit */
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("cannot create socket");
 		return (ER_CREATE_SOCKET_FAILED);
@@ -361,10 +360,10 @@ int clntConnect(char *serverName, int *s) {
 	/* Initialize serverAddress memory to 0 */
 	memset((char*) &serverAddress, 0, sizeof(serverAddress));
 
-	/* Set ftp server ftp address in serverAddress */
+	/* Set ftp server address in serverAddress */
 	serverAddress.sin_family = AF_INET;
-	memcpy((char*) &serverAddress.sin_addr, serverIPstructure->h_addr,
-			serverIPstructure->h_length);
+	memcpy((char*) &serverAddress.sin_addr, serverIPstructure -> h_addr,
+			serverIPstructure -> h_length);
 	serverAddress.sin_port = htons(CONTROL_CONNECTION_FTP_PORT);
 
 	/* Connect to the server */
@@ -464,7 +463,7 @@ int receiveMessage(int s, char *buffer, int bufferSize, int *msgSize) {
  *	OK	- Successful (returns always success code
  */
 int clntExtractReplyCode(char *buffer, int *replyCode) {
-	/* extract the codefrom the server reply message */
+	/* extract the code from the server reply message */
 	sscanf(buffer, "%d", replyCode);
 	return (OK);
 }
