@@ -1,6 +1,6 @@
-## client-server ftp program 
+### client-server ftp program 
 
-# Implements the FTP Protocol in C language, runs FTP commands using the system library and socket programming on PUTTY terminal emulator.
+Implements the FTP Protocol in C language, runs FTP commands using the system library and socket programming on PUTTY terminal emulator.
 
 - NOTE: This project is Unix/Linux environment specific. Compiling and running on non-Unix/Linux systems will trigger errors.
 
