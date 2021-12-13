@@ -8,4 +8,4 @@ Implements the FTP Protocol in C language, runs FTP commands using the system li
 
 - ftp cmds you can use: gets, puts, ls, dir, cd, mv, rmdir, mkdir, help, send, recv, quit, stat 
 
-- [Check it out here](https://brianperel.github.io/project4.htm){:target="_blank" rel="noopener"}
+- [Check it out here](https://brianperel.github.io/project4.htm)
